@@ -1,0 +1,231 @@
+body {
+    background-color: #dfbfbe;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #272822;
+    padding: 16px 24px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 24px;
+}
+
+nav button {
+    background: #f8f8f2;
+    color: #272822;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        color 0.2s,
+        transform 0.1s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+nav button:hover,
+nav button.active {
+    background: #dfbfbe;
+    color: #a80000;
+    transform: translateY(-2px) scale(1.04);
+}
+
+#output pre {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: "Fira Mono", "Consolas", "Menlo", monospace;
+    font-size: 1rem;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* .json-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+    font-size: 1rem;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.json-table thead {
+    background-color: #272822;
+    color: #f8f8f2;
+}
+
+.json-table th,
+.json-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.json-table tbody tr:hover {
+    background-color: #f5f5f5;
+} */
+
+/* Estado styles */
+.estado-disponible {
+    color: green;
+    font-weight: bold;
+}
+
+.estado-ocupado {
+    color: red;
+    font-weight: bold;
+}
+
+/* Animation */
+#output {
+    max-height: none;
+    opacity: 1;
+    overflow: visible;
+    transition: none;
+}
+
+#output.show {
+    max-height: 1000px;
+    opacity: 1;
+}
+
+#output.hide {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(39, 40, 34, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.3s;
+}
+
+.modal.hide {
+    display: none;
+    opacity: 0;
+}
+
+.modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal form {
+    background: #fff;
+    padding: 32px 24px;
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+    min-width: 320px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal label {
+    font-weight: bold;
+    margin-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+}
+
+.modal input,
+.modal select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-top: 4px;
+}
+
+.modal button[type="submit"] {
+    background: #272822;
+    color: #f8f8f2;
+    border: none;
+    padding: 10px 0;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: background 0.2s;
+}
+
+.modal button[type="submit"]:hover {
+    background: #a80000;
+}
+
+.modal button[type="button"] {
+    background: #dfbfbe;
+    color: #272822;
+    border: none;
+    padding: 8px 0;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.2s;
+}
+
+.modal button[type="button"]:hover {
+    background: #f8f8f2;
+    color: #a80000;
+}
+
+/* Nuevo Cliente Page Styles */
+.nuevo-cliente-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #dfbfbe 0%, #f8f8f2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nuevo-cliente-card {
+    background: #fff;
+    padding: 40px 32px;
+    border-radius: 16px;
+    box-shadow: 0 6px 32px rgba(39, 40, 34, 0.18);
+    min-width: 340px;
+    max-width: 90vw;
+    width: 100%;
+    animation: fadeInUp 0.5s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
