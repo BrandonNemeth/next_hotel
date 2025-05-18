@@ -1,8 +1,14 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Proyecto de un manejador de hotel usando una base de datos en MYSQL y Next.js
 
-## Getting Started
 
-First, run the development server:
+
+![Interfa](./SCMain.png)
+
+
+
+## Comenzando
+
+Correr el servidor de desarrollo usando el siguiente comando:
 
 ```bash
 npm run dev
@@ -14,8 +20,4 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver el resultado.
