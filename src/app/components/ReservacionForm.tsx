@@ -2,11 +2,14 @@
 import React, { useState } from "react";
 
 interface Props {
-  onSuccess: () => void;
-  onCancel: () => void;
+  onSuccessAction: () => void;
+  onCancelAction: () => void;
 }
 
-export const ReservacionForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
+export const ReservacionForm: React.FC<Props> = ({
+  onSuccessAction,
+  onCancelAction,
+}) => {
   const [form, setForm] = useState({
     cliente_id: "",
     habitacion_id: "",
@@ -29,7 +32,7 @@ export const ReservacionForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
     });
     setLoading(false);
     if (res.ok) {
-      onSuccess();
+      onSuccessAction();
     } else {
       alert("Error al crear la reservación");
     }
@@ -78,7 +81,7 @@ export const ReservacionForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
       <button type="submit" disabled={loading}>
         {loading ? "Guardando..." : "Reservar"}
       </button>
-      <button type="button" onClick={onCancel}>
+      <button type="button" onClick={onCancelAction}>
         Cancelar
       </button>
     </form>

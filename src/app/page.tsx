@@ -35,7 +35,7 @@ export default function HomePage() {
     setDatos(data);
   };
 
-  function handleReservacionSuccess() {
+  function handleReservacionSuccessAction() {
     setShowForm(false);
   }
 
@@ -51,6 +51,9 @@ export default function HomePage() {
         <Link href="/cliente/nuevo">
           <button>Nuevo Cliente</button>
         </Link>
+        <Link href="/dashboard">
+          <button>Dashboard</button>
+        </Link>
       </nav>
       <div id="output" className={tablaActual ? "show" : "hide"}>
         {tablaActual && (
@@ -64,8 +67,8 @@ export default function HomePage() {
       {showForm && (
         <div className="modal show">
           <ReservacionForm
-            onSuccess={handleReservacionSuccess}
-            onCancel={() => setShowForm(false)}
+            onSuccessAction={handleReservacionSuccessAction}
+            onCancelAction={() => setShowForm(false)}
           />
         </div>
       )}

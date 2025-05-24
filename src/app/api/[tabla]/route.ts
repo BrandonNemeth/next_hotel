@@ -12,29 +12,25 @@ export async function GET(
   req: NextRequest,
   { params: paramsPromise }: { params: Promise<{ tabla: string }> },
 ) {
-  const params = await paramsPromise;
+  const { tabla } = await paramsPromise;
 
-  switch (params.tabla) {
-    case "reservacion":
-      return NextResponse.json(await getReservacion());
-    case "cliente":
-      return NextResponse.json(await getCliente());
-    case "pago":
-      return NextResponse.json(await getPago());
-    case "factura":
-      return NextResponse.json(await getFactura());
-    case "servicio":
-      return NextResponse.json(await getServicio());
-    case "feedback":
-      return NextResponse.json(await getFeedback());
-    case "habitacion":
-      return NextResponse.json(await getHabitacion());
-    default:
-      return NextResponse.json(
-        { error: "Tabla no soportada" },
-        { status: 400 },
-      );
+  const tableHandlers: Record<string, () => Promise<unknown>> = {
+    reservacion: getReservacion,
+    cliente: getCliente,
+    pago: getPago,
+    factura: getFactura,
+    servicio: getServicio,
+    feedback: getFeedback,
+    habitacion: getHabitacion,
+  };
+
+  const handler = tableHandlers[tabla];
+
+  if (handler) {
+    return NextResponse.json(await handler());
   }
+
+  return NextResponse.json({ error: "Tabla no soportada" }, { status: 400 });
 }
 export async function POST(
   req: NextRequest,
@@ -94,7 +90,7 @@ export async function POST(
 
       return NextResponse.json({ success: true, insertId: result.insertId });
     } catch (error) {
-      console.error("Database error:", error); // <--- Agrega esto
+      console.error("Database error:", error);
       return NextResponse.json(
         { error: "Database error", details: String(error) },
         { status: 500 },
