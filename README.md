@@ -2,7 +2,8 @@ Proyecto de un manejador de hotel usando una base de datos en MYSQL y Next.js
 
 
 
-![Interfa](./SCMain.png)
+![Login](./login.png)
+![Interfaz](./SCMain.png)
 
 
 
