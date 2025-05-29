@@ -39,8 +39,25 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#272822] to-[#4A4B46]">
-      <Card className="w-full max-w-md shadow-xl bg-white">
+    <div
+      className="flex min-h-screen items-center justify-center"
+      style={{
+        backgroundImage: "url('/images/background-hotel.jpg')", // Corrected path
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      {/* Semi-transparent overlay */}
+      <div
+        className="absolute inset-0 bg-black opacity-50"
+        style={{ zIndex: 1 }}
+      ></div>
+
+      {/* Card needs a higher z-index to be on top of the overlay */}
+      <Card
+        className="w-full max-w-md shadow-xl bg-white"
+        style={{ zIndex: 2, position: "relative" }} // above overlay
+      >
         <CardHeader>
           <CardTitle className="text-center text-2xl text-[#272822]">
             Next Hotel
