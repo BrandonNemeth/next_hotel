@@ -7,7 +7,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; // Asegúrate de que esta importación sea correcta
 
+// Nombres de las tablas
 const tablas = [
   "cliente",
   "vips",
@@ -21,12 +29,21 @@ const tablas = [
 
 type TableRow = Record<string, unknown>;
 
-// Interfaz para los datos del reporte que esperamos de la API
+// Interfaz para los datos del reporte de ingresos
 interface IngresosReportData {
   year: number;
   month: number;
   sum: string;
 }
+
+// Constante para niveles VIP (valores deben coincidir con el ENUM de la BD)
+const NIVELES_VIP_BD = [
+  { value: "silver", label: "Silver (Plata)" },
+  { value: "gold", label: "Gold (Oro)" },
+  { value: "platinum", label: "Platinum (Platino)" },
+  // Añade más objetos aquí si tu ENUM en la BD tiene más opciones
+  // Ejemplo: { value: 'bronze', label: 'Bronze (Bronce)' },
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -49,12 +66,20 @@ export default function HomePage() {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
 
+  // Estado para Marcar Cliente como VIP
+  const [vipClienteIdInput, setVipClienteIdInput] = useState<string>("");
+  const [vipNivelSeleccionado, setVipNivelSeleccionado] = useState<string>(
+    NIVELES_VIP_BD[0].value,
+  ); // Default al primer 'value'
+  const [marcarVipLoading, setMarcarVipLoading] = useState(false);
+  const [marcarVipMessage, setMarcarVipMessage] = useState<string | null>(null);
+
   useEffect(() => {
     const authStatus = localStorage.getItem("isAdminAuthenticated");
     if (authStatus === "true") {
       setIsAuthenticated(true);
     } else {
-      router.replace("/admin/login"); // Redirigir si no está autenticado
+      router.replace("/admin/login");
     }
     setIsLoadingAuth(false);
   }, [router]);
@@ -65,6 +90,10 @@ export default function HomePage() {
       setDatos([]);
       return;
     }
+    setMarcarVipMessage(null);
+    setReportError(null);
+    setIngresosReport(null);
+
     const res = await fetch(`/api/${tabla}`);
     const data = await res.json();
     setTablaActual(tabla);
@@ -73,7 +102,6 @@ export default function HomePage() {
 
   function handleReservacionSuccessAction() {
     setShowForm(false);
-
     if (tablaActual === "reservacion") {
       fetchTabla("reservacion");
     }
@@ -81,21 +109,19 @@ export default function HomePage() {
 
   const handleLogout = () => {
     localStorage.removeItem("isAdminAuthenticated");
-    setIsAuthenticated(false); // Actualizar estado
-    router.push("/admin/login"); // Redirigir al login
+    setIsAuthenticated(false);
+    router.push("/admin/login");
   };
 
-  // Función para obtener el reporte de ingresos
   const handleFetchIngresosReport = async () => {
     setReportLoading(true);
     setReportError(null);
-    setIngresosReport(null); // Limpiar reporte anterior
+    setIngresosReport(null);
     try {
       const response = await fetch(
         `/api/reports/ingresosPorMes?year=${reportYear}&month=${reportMonth}`,
       );
       const result = await response.json();
-
       if (response.ok && result.success) {
         if (result.data) {
           setIngresosReport(result.data);
@@ -107,57 +133,92 @@ export default function HomePage() {
         }
       } else {
         setReportError(
-          result.error || "Error al obtener el reporte de ingresos.",
+          result.details ||
+            result.error ||
+            "Error al obtener el reporte de ingresos.",
         );
       }
     } catch (err) {
       setReportError(
-        "Ocurrió un error al obtener el reporte. Revisa la consola para más detalles.",
+        "Ocurrió un error de red al obtener el reporte. Revisa la consola.",
       );
       console.error("Error al obtener reporte de ingresos:", err);
     }
     setReportLoading(false);
   };
 
+  const handleMarcarClienteVIP = async () => {
+    if (!vipClienteIdInput.trim()) {
+      setMarcarVipMessage("Por favor, ingrese un ID de cliente.");
+      return;
+    }
+    const clienteIdNum = parseInt(vipClienteIdInput, 10);
+    if (isNaN(clienteIdNum)) {
+      setMarcarVipMessage("El ID de cliente debe ser un número válido.");
+      return;
+    }
+    if (!vipNivelSeleccionado) {
+      setMarcarVipMessage("Por favor, seleccione un nivel VIP.");
+      return;
+    }
+
+    setMarcarVipLoading(true);
+    setMarcarVipMessage(null);
+    try {
+      const response = await fetch("/api/vip/asignarUpgrade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cliente_id: clienteIdNum,
+          nivel_vip: vipNivelSeleccionado, // Se envía el 'value' (ej: 'silver')
+        }),
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setMarcarVipMessage(
+          result.message || "Cliente marcado como VIP exitosamente.",
+        );
+        setVipClienteIdInput("");
+        if (tablaActual === "vips") {
+          fetchTabla("vips");
+        }
+      } else {
+        setMarcarVipMessage(
+          `Error: ${result.details || result.error || "No se pudo marcar al cliente como VIP."}`,
+        );
+      }
+    } catch (err) {
+      setMarcarVipMessage(
+        "Ocurrió un error de red al marcar VIP. Revisa la consola.",
+      );
+      console.error("Error al marcar VIP:", err);
+    }
+    setMarcarVipLoading(false);
+  };
+
   if (isLoadingAuth) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#dfbfbe",
-        }}
-      >
-        <p style={{ color: "#272822", fontSize: "1.2rem" }}>Cargando...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#dfbfbe]">
+        <p className="text-[#272822] text-xl">Cargando...</p>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#dfbfbe",
-        }}
-      >
-        <p style={{ color: "#272822", fontSize: "1.2rem" }}>
+      <div className="flex min-h-screen items-center justify-center bg-[#dfbfbe]">
+        <p className="text-[#272822] text-xl">
           Redirigiendo al inicio de sesión...
         </p>
       </div>
     );
   }
 
-  // Si está autenticado, mostrar el contenido de la página
   return (
-    <main className="p-4">
-      <nav className="flex flex-wrap justify-between items-center mb-6 pb-4 border-b">
-        <div className="flex flex-wrap gap-2 mb-2 md:mb-0">
+    <main className="p-4 md:p-6 lg:p-8 bg-background text-foreground min-h-screen">
+      <nav className="flex flex-col md:flex-row flex-wrap justify-between items-center mb-6 pb-4 border-b border-border">
+        <div className="flex flex-wrap gap-2 mb-4 md:mb-0">
           {tablas.map((tabla) => (
             <Button
               key={tabla}
@@ -181,12 +242,12 @@ export default function HomePage() {
 
       {/* Sección para Reporte de Ingresos */}
       <section className="my-8 p-6 bg-card text-card-foreground rounded-xl border shadow-sm">
-        <h2 className="text-2xl font-semibold mb-4">
+        <h2 className="text-2xl font-semibold mb-6 text-primary">
           Reporte de Ingresos Mensuales
         </h2>
-        <div className="flex flex-wrap gap-4 mb-4 items-end">
-          <div>
-            <Label htmlFor="reportYear" className="mb-1 block">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="flex flex-col">
+            <Label htmlFor="reportYear" className="mb-1 text-sm font-medium">
               Año
             </Label>
             <Input
@@ -195,11 +256,10 @@ export default function HomePage() {
               value={reportYear}
               onChange={(e) => setReportYear(e.target.value)}
               placeholder="AAAA"
-              className="w-36"
             />
           </div>
-          <div>
-            <Label htmlFor="reportMonth" className="mb-1 block">
+          <div className="flex flex-col">
+            <Label htmlFor="reportMonth" className="mb-1 text-sm font-medium">
               Mes
             </Label>
             <Input
@@ -210,58 +270,118 @@ export default function HomePage() {
               placeholder="MM"
               min="1"
               max="12"
-              className="w-28"
             />
           </div>
           <Button
             onClick={handleFetchIngresosReport}
             disabled={reportLoading}
-            className="self-end"
+            className="md:mt-auto"
           >
             {reportLoading ? "Generando..." : "Obtener Reporte"}
           </Button>
         </div>
         {reportError && (
-          <p className="text-sm text-red-600 mb-3">{reportError}</p>
+          <p className="mt-3 text-sm text-destructive">{reportError}</p>
         )}
         {ingresosReport && (
-          <div className="p-4 bg-muted text-muted-foreground rounded-lg">
-            <h3 className="text-lg font-medium mb-2">
+          <div className="mt-4 p-4 bg-muted text-muted-foreground rounded-lg">
+            <h3 className="text-lg font-medium mb-2 text-foreground">
               Reporte para {ingresosReport.month}/{ingresosReport.year}
             </h3>
             <p className="text-lg">
-              <strong>Ingresos Totales:</strong>
+              <strong className="text-foreground">Ingresos Totales:</strong>
               <span className="font-bold text-primary ml-2">
-                ${parseFloat(ingresosReport.sum).toFixed(2)}
+                $
+                {!isNaN(parseFloat(ingresosReport.sum))
+                  ? parseFloat(ingresosReport.sum).toFixed(2)
+                  : "0.00"}
               </span>
             </p>
           </div>
         )}
       </section>
 
-      {/* El ID 'output' y las clases 'show'/'hide' parecen ser de un estilo anterior. */}
-      {/* Considera usar clases de Tailwind para la visibilidad si es posible para consistencia. */}
+      {/* Sección para Marcar Cliente como VIP */}
+      <section className="my-8 p-6 bg-card text-card-foreground rounded-xl border shadow-sm">
+        <h2 className="text-2xl font-semibold mb-6 text-primary">
+          Marcar Cliente como VIP
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="flex flex-col">
+            <Label
+              htmlFor="vipClienteIdInput"
+              className="mb-1 text-sm font-medium"
+            >
+              ID Cliente
+            </Label>
+            <Input
+              id="vipClienteIdInput"
+              type="text"
+              value={vipClienteIdInput}
+              onChange={(e) => setVipClienteIdInput(e.target.value)}
+              placeholder="Ingrese ID del cliente"
+            />
+          </div>
+          <div className="flex flex-col">
+            <Label
+              htmlFor="vipNivelSeleccionado"
+              className="mb-1 text-sm font-medium"
+            >
+              Nivel VIP
+            </Label>
+            <Select
+              value={vipNivelSeleccionado}
+              onValueChange={setVipNivelSeleccionado}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione nivel" />
+              </SelectTrigger>
+              <SelectContent>
+                {NIVELES_VIP_BD.map((nivel) => (
+                  <SelectItem key={nivel.value} value={nivel.value}>
+                    {nivel.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            onClick={handleMarcarClienteVIP}
+            disabled={marcarVipLoading}
+            className="md:mt-auto"
+          >
+            {marcarVipLoading ? "Procesando..." : "Marcar como VIP"}
+          </Button>
+        </div>
+        {marcarVipMessage && (
+          <p
+            className={`mt-3 text-sm ${marcarVipMessage.toLowerCase().includes("error") || marcarVipMessage.toLowerCase().startsWith("por favor") ? "text-destructive" : "text-green-600"}`}
+          >
+            {marcarVipMessage}
+          </p>
+        )}
+      </section>
+
+      {/* Sección para mostrar tablas */}
       <div
         id="output"
-        className={
-          tablaActual
-            ? "opacity-100 max-h-[1000px]"
-            : "opacity-0 max-h-0 overflow-hidden transition-all duration-500 ease-in-out"
-        }
+        className={`transition-all duration-500 ease-in-out ${tablaActual ? "opacity-100 max-h-[2000px] mt-8" : "opacity-0 max-h-0"}`}
       >
         {tablaActual && (
-          <Table // Asumo que Table.tsx muestra los encabezados tal como vienen de la API
+          <Table
             data={datos}
             estadoField={tablaActual === "reservacion" ? "estado" : undefined}
           />
         )}
       </div>
 
+      {/* Modal para el formulario de reservación */}
       {showForm && (
-        // Modal para el formulario de reservación
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card p-6 rounded-lg shadow-xl w-full max-w-lg">
-            {/* ReservacionForm será traducido en su propio archivo */}
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-card p-6 md:p-8 rounded-lg shadow-xl w-full max-w-lg">
+            <h3 className="text-xl font-semibold mb-4 text-primary">
+              Nueva Reservación
+            </h3>
             <ReservacionForm
               onSuccessAction={handleReservacionSuccessAction}
               onCancelAction={() => setShowForm(false)}
