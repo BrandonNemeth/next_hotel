@@ -59,7 +59,7 @@ export const ReservacionForm: React.FC<Props> = ({
         />
       </label>
       <label>
-        Fecha Inicio:{" "}
+        Check In:{" "}
         <input
           type="date"
           name="fecha_inicio"
@@ -69,7 +69,7 @@ export const ReservacionForm: React.FC<Props> = ({
         />
       </label>
       <label>
-        Fecha Fin:{" "}
+        Check Out:{" "}
         <input
           type="date"
           name="fecha_fin"
